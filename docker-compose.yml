@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  react:
+    container_name: react
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+
+  spring-boot:
+    container_name: spring-boot
+    build:
+      context: ./projetAgile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@//oracledb:1521/EE.oracle.docker
+      - SPRING_DATASOURCE_USERNAME=system
+      - SPRING_DATASOURCE_PASSWORD=oracle
+    depends_on:
+      - oracledb
+
+  oracledb:
+    image: loliconneko/oracle-ee-11g
+    container_name: oracledb
+    ports:
+      - 1521:1521
+    volumes:
+      - oracle-data:/u01/app/oracle
+    healthcheck:
+      test: ["CMD", "sqlplus", "-L","sys/Oracle_123@//localhost:1521/EE.oracle.docker as sysdba", "@healthcheck.sql"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  oracle-data:
+    driver: local
